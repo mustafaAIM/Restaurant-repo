@@ -26,7 +26,7 @@ SECRET_KEY = "django-insecure-0ja4#514^#e)ht*sf!tvywuo&41=s04(g6&)5ji9wuz&hvt46x
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['restaurant-repo.onrender.com','localhost']
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_CREDENTIALS = True
 
