@@ -28,7 +28,13 @@ class RestaurantViewSet(ModelViewSet):
             else :
                return Response({"Not authorized"},status.HTTP_401_UNAUTHORIZED)
             
-  
+      def destroy(self, request, *args, **kwargs):
+          if request.user.is_superuser:  
+             return super().destroy(request, *args, **kwargs)  
+          return Response({"Not authorized"},status.HTTP_401_UNAUTHORIZED)
+      
+
+
 
 class CategoryViewSet(ModelViewSet):
       permission_classes = [IsSuperUser]
@@ -42,7 +48,7 @@ class DishViewSet(ModelViewSet):
       filter_backends = [DjangoFilterBackend]
       filterset_class = DishFilter
       def get_permissions(self):
-        if self.action in ['create','destroy']:
+        if self.action in ['create','destroy','update','partial_update']:
             permission_classes = [IsSuperUser]
         else:
             permission_classes = [IsAuthenticated]
@@ -53,12 +59,12 @@ class DishViewSet(ModelViewSet):
         if self.action == 'retrieve':
             return DishDetailsSerializer
         return DishListCreateSerializer
-          
+      
 
 
 class RestaurantAddDishes(GenericViewSet):
       serializer_class = AddDishesSerializer
-       
+      permission_classes = [[IsSuperUser]]
       @action(methods=["POST"] , detail=True , url_path="add-dishes" )
       def add_dishes(self,request,pk) :
            dishes = request.data['dishes']
