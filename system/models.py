@@ -17,7 +17,23 @@ class Customer(models.Model):
       def __str__(self) -> str:
            return f"{self.user.first_name} {self.user.last_name}"
 
+class Category(models.Model):
+      name =  models.CharField(max_length=255)
+      def __str__(self) -> str:
+           return self.name
 
+
+
+class Dish(models.Model):
+      name = models.CharField(max_length= 255)
+      image = models.ImageField(null = True, blank = True)
+      price = models.DecimalField(decimal_places=2,max_digits=4)
+      description = models.TextField(null=True,blank = True)
+      categories = models.ManyToManyField(Category)
+ 
+      def __str__(self) -> str:
+           return self.name
+      
 class Restaurant(models.Model):
       manager = models.OneToOneField(Manager , on_delete=models.CASCADE)
       name = models.CharField( max_length=255)
@@ -25,10 +41,14 @@ class Restaurant(models.Model):
       image = models.ImageField(null = True,blank = True)
       work_from = models.TimeField(null=True,blank=True)
       work_to = models.TimeField(null=True,blank=True) 
-      
+      dishes = models.ManyToManyField(Dish)
       @property
       def rate(self):
         return self.review_set.aggregate(models.Avg('rate'))['rate__avg'] or 0
+      
+      def __str__(self) -> str:
+           return self.name
+      
 
 class Review(models.Model):
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
@@ -44,12 +64,18 @@ class Review(models.Model):
 
 
 class Table(models.Model):
+      TABLE_TYPE_CHOICES = [
+        ('family', 'Family'),
+        ('friends', 'Friends'),
+      ]
       restaurant = models.ForeignKey(Restaurant,on_delete=models.CASCADE,related_name="tables")
       number = models.IntegerField()
-      type  = models.CharField(max_length=255)
+      type  = models.CharField(max_length=255,choices=TABLE_TYPE_CHOICES)
       booked = models.BooleanField(default=False)
       chairs = models.IntegerField()
 
+      class Meta:
+          unique_together = ('restaurant','number')
 
 class Booking(models.Model):
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
@@ -59,10 +85,3 @@ class Booking(models.Model):
     booked_date = models.DateTimeField()
 
 
-
-
-
-
-
-
-    

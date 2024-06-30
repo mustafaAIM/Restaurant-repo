@@ -26,7 +26,7 @@ SECRET_KEY = "django-insecure-0ja4#514^#e)ht*sf!tvywuo&41=s04(g6&)5ji9wuz&hvt46x
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['restaurant-repo.onrender.com','localhost']
+ALLOWED_HOSTS = ['restaurant-repo.onrender.com','localhost','127.0.0.1']
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_CREDENTIALS = True
 
@@ -44,7 +44,10 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'drf_yasg',
     'drf_spectacular',
-    'corsheaders','cloudinary_storage','cloudinary',
+    'corsheaders',
+    'cloudinary_storage',
+    'cloudinary',
+    'django_filters',
     #apps
     'authentication',
     'system'
@@ -146,9 +149,8 @@ REST_FRAMEWORK = {
         'rest_framework.renderers.BrowsableAPIRenderer',
     ), 
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
 }
-
-
 
 
 from datetime import timedelta
@@ -196,6 +198,5 @@ CLOUDINARY_STORAGE = {
   'API_KEY':'957895431761286',
   'API_SECRET':'NyXOkZ5nL774amDkDK-iK4xliic'
 }
-
 
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'

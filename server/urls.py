@@ -28,7 +28,6 @@ urlpatterns = [
     path('/spe', SpectacularAPIView.as_view(), name='schema'),
     path('', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
     path('/sss', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
-
 ]
 
-urlpatterns += static(settings.STATIC_URL )
+urlpatterns += static(settings.STATIC_URL)

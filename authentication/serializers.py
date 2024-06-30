@@ -45,7 +45,8 @@ class UserUpdateSerializer(BaseUserSerializer):
 class CustomTokenObtainPairsSerializer(TokenObtainPairSerializer): 
       def validate(self, attrs):
         data = super().validate(attrs) 
-        user = self.user
+        user = self.user 
+        print(user.id)
         data['role'] = user.groups.all().first().name 
         return data
 

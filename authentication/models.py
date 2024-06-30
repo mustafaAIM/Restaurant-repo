@@ -38,7 +38,7 @@ class User(AbstractUser):
       password = models.CharField(max_length = 255) 
       gender = models.CharField(max_length=255,default="")
       city = models.CharField(max_length=255,default="")
-      birth_date = models.DateTimeField(null= True,blank=True)
+      birth_date = models.DateField(null= True,blank=True)
       picture = models.ImageField(null = True,blank=True)
       objects = CustomUserManager()
       USERNAME_FIELD = 'email'

@@ -10,6 +10,13 @@ from rest_framework.generics import RetrieveUpdateAPIView
 from authentication.models import User
 from rest_framework.permissions import IsAuthenticated
 from django.apps import apps
+from django.views.decorators.cache import cache_page 
+from django.utils.decorators import method_decorator
+from django.views.decorators.vary import vary_on_headers, vary_on_cookie
+
+
+
+
 
 class UserRegistrationMixin:
     serializer_class = UserRegistrationSerializer
@@ -47,3 +54,4 @@ class Profile(RetrieveUpdateAPIView):
       permission_classes = [IsProfileUser,IsAuthenticated]
       queryset = User.objects.all()      
 
+      
