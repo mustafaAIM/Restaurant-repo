@@ -47,25 +47,42 @@ class DishViewSet(ModelViewSet):
       queryset = Dish.objects.all()
       filter_backends = [DjangoFilterBackend]
       filterset_class = DishFilter
-      def get_permissions(self):
-        if self.action in ['create','destroy','update','partial_update']:
-            permission_classes = [IsSuperUser]
-        else:
-            permission_classes = [IsAuthenticated]
-        return [permission() for permission in permission_classes]
- 
-       
+      permission_classes = [IsAuthenticated]
+        
       def get_serializer_class(self):
         if self.action == 'retrieve':
             return DishDetailsSerializer
         return DishListCreateSerializer
       
+      def create(self, request, *args, **kwargs):
+          if request.user.is_superuser:
+             return super().create(request, *args, **kwargs)
+          else :
+              return Response({"message":"not authorized"})
+
+      def destroy(self, request, *args, **kwargs):
+          if request.user.is_superuser:
+             return super().destroy(request, *args, **kwargs)
+          else :
+              return Response({"message":"not authorized"})
+
+      def update(self, request, *args, **kwargs):
+          if request.user.is_superuser:
+             return super().update(request, *args, **kwargs)
+          else :
+              return Response({"message":"not authorized"})
+      def partial_update(self, request, *args, **kwargs):
+          if request.user.is_superuser:
+             return super().partial_update(request, *args, **kwargs)
+          else :
+             return Response({"message":"not authorized"})
+          
 
 
 class RestaurantAddDishes(GenericViewSet):
       serializer_class = AddDishesSerializer
-      permission_classes = [[IsSuperUser]]
-      @action(methods=["POST"] , detail=True , url_path="add-dishes" )
+      permission_classes = [IsSuperUser]
+      @action(methods=["POST"] , detail=True , url_path="add-dishes")
       def add_dishes(self,request,pk) :
            dishes = request.data['dishes']
            restaurant = get_object_or_404(Restaurant , id = pk)
