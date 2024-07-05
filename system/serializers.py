@@ -3,7 +3,7 @@ from system.models import Restaurant , Manager , Category , Dish , Table,Booking
 from authentication.models import User 
 from django.shortcuts import get_object_or_404
 from authentication.serializers import UserDetailSerializer
-
+from rest_framework.exceptions import ValidationError
 #category serializer
 class CategorySerializer(serializers.ModelSerializer):
       class Meta: 
@@ -82,16 +82,22 @@ class TableSerializer(serializers.ModelSerializer):
             extra_kwargs = {
                               "booked":{
                                           "read_only":True
-                                        }
-                           }
+                                        },
+                              "restaurant" : {
+                                   "write_only":True
+                              }
             
-      def to_internal_value(self, data):
-            return data
-      
-      def create(self, validated_data):
-            validated_data["restaurant"] =  get_object_or_404(Restaurant,id = validated_data["restaurant"])
-            return super().create(validated_data) 
+                   }
+            
 
+      def to_internal_value(self, data):
+           restaurant = data["restaurant"]
+           data = super().to_internal_value(data)
+           data['restaurant'] = restaurant
+           return data
+      
+       
+    
 #booking serializers
 
 class CustomerSerializer(serializers.ModelSerializer):

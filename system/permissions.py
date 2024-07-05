@@ -5,10 +5,7 @@ from rest_framework.exceptions import PermissionDenied
 class IsRestaurantManager(BasePermission):
       def has_permission(self, request, view):
            if request.user.is_anonymous :
-                  raise PermissionDenied("Login to perform this action") 
- 
-          
-          
+                  raise PermissionDenied("Login to perform this action")          
            return True
       
       def has_object_permission(self, request, view, obj): 
@@ -17,7 +14,7 @@ class IsRestaurantManager(BasePermission):
             # Case where obj is related to a restaurant
             return bool(request.user == obj.restaurant.manager.user)
         elif hasattr(obj, 'manager'):
-            # Case where obj itself is a restaurant
+              # Case where obj itself is a restaurant
             return bool(request.user == obj.manager.user)
         
         return False

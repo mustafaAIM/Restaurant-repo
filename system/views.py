@@ -9,6 +9,7 @@ from system.serializers import (RestaurantSerializer
                                 ,DishDetailsSerializer 
                                 , TableSerializer 
                                 ,BookingSerializer)
+
 from system.models import Restaurant ,Category ,Dish , Table , Booking
 from rest_framework.permissions import IsAuthenticated
 from authentication.permissions import IsSuperUser
@@ -18,35 +19,26 @@ from rest_framework.generics import(ListCreateAPIView
                                      ,ListAPIView 
                                     ,RetrieveUpdateAPIView
                                     ,CreateAPIView)
-from django.shortcuts import get_object_or_404,get_list_or_404
+
+from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from system.filters import DishFilter 
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 # Create your views here.
 
+
 #Restaurant
 class RestaurantViewSet(ModelViewSet):
-      permission_classes = [IsAuthenticated]
       serializer_class = RestaurantSerializer
       queryset = Restaurant.objects.all()
 
       def get_permissions(self):
         if self.request.method == 'GET':
             return [AllowAny()]
-        return [IsAuthenticated()]
-
+        return [IsSuperUser()]
  
-      def create(self, request, *args, **kwargs):
-            if request.user.is_superuser :
-               return super().create(request, *args, **kwargs)
-            else :
-               return Response({"Not authorized"},status.HTTP_401_UNAUTHORIZED)
-            
-      def destroy(self, request, *args, **kwargs):
-          if request.user.is_superuser:  
-             return super().destroy(request, *args, **kwargs)  
-          return Response({"Not authorized"},status.HTTP_401_UNAUTHORIZED)
+ 
 
 class MyRestaurantView(RetrieveUpdateAPIView): 
       serializer_class = RestaurantSerializer
@@ -73,8 +65,7 @@ class CategoryViewSet(ModelViewSet):
 class DishViewSet(ModelViewSet):
       queryset = Dish.objects.all()
       filter_backends = [DjangoFilterBackend]
-      filterset_class = DishFilter
-      permission_classes = [IsAuthenticated]
+      filterset_class = DishFilter 
         
       def get_serializer_class(self):
           if self.action == 'retrieve':
@@ -82,29 +73,11 @@ class DishViewSet(ModelViewSet):
           return DishListCreateSerializer
       
       
-      def create(self, request, *args, **kwargs):
-          if request.user.is_superuser: 
-             return super().create(request, *args, **kwargs)
-          else :
-              return Response({"message":"not authorized"})
-
-      def destroy(self, request, *args, **kwargs):
-          if request.user.is_superuser:
-             return super().destroy(request, *args, **kwargs)
-          else :
-              return Response({"message":"not authorized"})
-
-      def update(self, request, *args, **kwargs):
-          if request.user.is_superuser:
-             return super().update(request, *args, **kwargs)
-          else :
-              return Response({"message":"not authorized"})
-      def partial_update(self, request, *args, **kwargs):
-          if request.user.is_superuser:
-             return super().partial_update(request, *args, **kwargs)
-          else :
-             return Response({"message":"not authorized"})
-          
+      def get_permissions(self):
+        if self.request.method == 'GET':
+            return [AllowAny()]
+        return [IsSuperUser()]
+       
 
 
 class RestaurantAddDishes(GenericViewSet):
@@ -132,7 +105,6 @@ class RestaurantDeleteDish(GenericViewSet):
            return Response({"message":"dishe deleted from the restaurnt"},status=status.HTTP_204_NO_CONTENT)
       
 
-
 #tables
 class ListCreateTable(ListCreateAPIView):
       serializer_class = TableSerializer 
@@ -141,20 +113,21 @@ class ListCreateTable(ListCreateAPIView):
       def get_queryset(self): 
           restaurant = get_object_or_404(Restaurant,manager__user = self.request.user)
           return  restaurant.tables.all()
-          
+      
       def post(self, request, *args, **kwargs):
-          data = request.data 
-          data["restaurant"] = get_object_or_404(Restaurant,manager__user = self.request.user).id
-          serialized_table= TableSerializer(data= data)
+          data = request.data.copy()
+          data["restaurant"] = get_object_or_404(Restaurant, manager__user = request.user)
+          serialized_table = TableSerializer(data = data)
           serialized_table.is_valid(raise_exception=True)
           serialized_table.save()
-          return Response(serialized_table.data, status.HTTP_201_CREATED)
+          return Response(serialized_table.data, status=status.HTTP_201_CREATED)
       
 
 class RetrieveUpdateDestroyTable(RetrieveUpdateDestroyAPIView):
       serializer_class = TableSerializer
-      queryset = Table.objects.all()
       permission_classes = [IsRestaurantManager]
+      def get_queryset(self):
+          return Table.objects.filter(restaurant__manager__user = self.request.user)
 
 #Bookings
 class ListBookingView(ListAPIView):
