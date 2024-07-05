@@ -1,10 +1,10 @@
 from rest_framework import serializers
-from system.models import Restaurant , Manager , Category , Dish , Table
+from system.models import Restaurant , Manager , Category , Dish , Table,Booking
 from authentication.models import User
 from django.shortcuts import get_object_or_404
 
 
-
+#category serializer
 class CategorySerializer(serializers.ModelSerializer):
       class Meta: 
             model = Category
@@ -12,7 +12,7 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 
-
+#Dish Serializers
 class DishListCreateSerializer(serializers.ModelSerializer):
         
       class Meta:
@@ -65,14 +65,6 @@ class DishDetailsSerializer(serializers.ModelSerializer):
         return representation
     
 
-
-
-
-
-
-
-
-
 class AddDishesSerializer(serializers.Serializer): 
       dishes = serializers.ListField(
             child=serializers.IntegerField(),
@@ -81,27 +73,49 @@ class AddDishesSerializer(serializers.Serializer):
         )
       
 
-
+#Table serializer
 class TableSerializer(serializers.ModelSerializer):
-     class Meta:
-          model = Table
-          fields = ["id","number","title","description"]
       
-     def to_internal_value(self, data):
-          return data
-     
-     def create(self, validated_data):
-          validated_data["restaurant"] =  get_object_or_404(Restaurant,id = validated_data["restaurant"])
-          return super().create(validated_data) 
+      class Meta:
+            model = Table
+            fields = ["id","number","title","description","booked"]
+            extra_kwargs = {
+                              "booked":{
+                                          "read_only":True
+                                        }
+                          }
+            
+      def to_internal_value(self, data):
+            return data
+      
+      def create(self, validated_data):
+            validated_data["restaurant"] =  get_object_or_404(Restaurant,id = validated_data["restaurant"])
+            return super().create(validated_data) 
 
 
+class BookingSerializer(serializers.ModelSerializer):
+      booked_date = serializers.DateTimeField(format="%Y/%m/%d %H:%M")
+      class Meta:
+           model = Booking
+           fields = '__all__'
+
+      
+
+
+
+
+
+
+
+
+#Restaurant Serializer
 class RestaurantSerializer(serializers.ModelSerializer):
       manager = serializers.EmailField(required = True)
       tables = TableSerializer(read_only = True,many = True)
+      dishes = DishListCreateSerializer(read_only = True,many = True)
       class Meta:
             model = Restaurant
-            exclude = []
-            extra_kwargs = {"dishes":{"read_only":True}}
+            exclude = [] 
 
       def create(self, validated_data):
             email = validated_data.pop('manager',None)
@@ -110,17 +124,4 @@ class RestaurantSerializer(serializers.ModelSerializer):
             validated_data['manager'] = manager     
             return super().create(validated_data=validated_data)
       
-      def to_representation(self, instance):
-           data = super().to_representation(instance)
-           data['dishes'] = [
-            {
-                "id": dish.id,
-                "name": dish.name,
-                "price": dish.price,
-                "description": dish.description,
-                "image": dish.image.url  if dish.image else None,
-            }
-            for dish in instance.dishes.all()
-          ]
-
-           return data
+     

@@ -8,5 +8,13 @@ class IsRestaurantManager(BasePermission):
                   raise PermissionDenied("Login to edit your restaurant") 
            return True
       
-      def has_object_permission(self, request, view, obj):
-          print(view)
+      def has_object_permission(self, request, view, obj): 
+        # Check if the user is the manager of the restaurant
+        if hasattr(obj, 'restaurant'):
+            # Case where obj is related to a restaurant
+            return bool(request.user == obj.restaurant.manager.user)
+        elif hasattr(obj, 'manager'):
+            # Case where obj itself is a restaurant
+            return bool(request.user == obj.manager.user)
+        
+        return False

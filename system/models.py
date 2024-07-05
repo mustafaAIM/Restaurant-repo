@@ -31,7 +31,7 @@ class Dish(models.Model):
       price = models.DecimalField(decimal_places=2,max_digits=10)
       description = models.TextField(null=True,blank = True)
       categories = models.ManyToManyField(Category)
- 
+
       def __str__(self) -> str:
            return self.name
       
@@ -40,18 +40,42 @@ class Restaurant(models.Model):
       name = models.CharField( max_length=255)
       location = models.CharField(max_length=255,null = True,blank=True)
       image = models.ImageField(null = True,blank = True)
-      work_from = models.TimeField(null=True,blank=True)
-      work_to = models.TimeField(null=True,blank=True) 
+      work_from = models.CharField(max_length=255,null=True,blank=True)
+      work_to = models.CharField(max_length=255,null=True,blank=True) 
       dishes = models.ManyToManyField(Dish)
-      
+      lat =models.CharField(max_length=255,null = True,blank=True)
+      lon = models.CharField(max_length=255,null = True,blank=True)
       @property
       def rate(self):
         return self.review_set.aggregate(models.Avg('rate'))['rate__avg'] or 0
       
       def __str__(self) -> str:
            return self.name
+
+class Table(models.Model):
+      restaurant = models.ForeignKey(Restaurant,on_delete=models.CASCADE,related_name="tables")
+      number = models.IntegerField() 
+      title = models.TextField(default="")
+      description = models.TextField(default="")
+      booked = models.BooleanField(default=False)
+      class Meta:
+          unique_together = ('restaurant','number')
+
+          
+
+class Booking(models.Model):
+      customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
+      table = models.ForeignKey(Table, on_delete=models.CASCADE)
+      pending = models.BooleanField(default=True) 
+      guests_number = models.PositiveBigIntegerField(default=0)
+      confirmed = models.BooleanField(default=False)
+      booked_date = models.DateTimeField() 
+
       
 
+
+
+    
 class Review(models.Model):
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
     restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE)
@@ -64,24 +88,3 @@ class Review(models.Model):
         ]
     )
 
-
-class Table(models.Model):
-      restaurant = models.ForeignKey(Restaurant,on_delete=models.CASCADE,related_name="tables")
-      number = models.IntegerField() 
-      title = models.TextField(default="")
-      description = models.TextField(default="")
-      booked = models.BooleanField(default=False)
-      class Meta:
-          unique_together = ('restaurant','number')
-
-
-
-
-class Booking(models.Model):
-      customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
-      table = models.ForeignKey(Table, on_delete=models.CASCADE)
-      pending = models.BooleanField(default=True)
-      confirmed = models.BooleanField(default=False)
-      booked_date = models.DateTimeField() 
-
-      
