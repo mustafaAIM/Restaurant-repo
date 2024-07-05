@@ -1,8 +1,8 @@
 from rest_framework import serializers
-from system.models import Restaurant , Manager , Category , Dish , Table,Booking
-from authentication.models import User
+from system.models import Restaurant , Manager , Category , Dish , Table,Booking,Customer
+from authentication.models import User 
 from django.shortcuts import get_object_or_404
-
+from authentication.serializers import UserDetailSerializer
 
 #category serializer
 class CategorySerializer(serializers.ModelSerializer):
@@ -83,7 +83,7 @@ class TableSerializer(serializers.ModelSerializer):
                               "booked":{
                                           "read_only":True
                                         }
-                          }
+                           }
             
       def to_internal_value(self, data):
             return data
@@ -92,18 +92,36 @@ class TableSerializer(serializers.ModelSerializer):
             validated_data["restaurant"] =  get_object_or_404(Restaurant,id = validated_data["restaurant"])
             return super().create(validated_data) 
 
+#booking serializers
+
+class CustomerSerializer(serializers.ModelSerializer):
+      class Meta: 
+            model = Customer
+            fields = "__all__"
+
+      def to_representation(self, instance):
+           data = super().to_representation(instance)
+           del data["user"]
+           data["first_name"] = instance.user.first_name
+           data["last_name"]  = instance.user.last_name
+           data["email"] = instance.user.email
+           data["gender"] = instance.user.gender
+           data["city"] = instance.user.city
+           data["birth_date"] = instance.user.birth_date
+           return  data 
+           
+
 
 class BookingSerializer(serializers.ModelSerializer):
       booked_date = serializers.DateTimeField(format="%Y/%m/%d %H:%M")
+      table_number = serializers.IntegerField(write_only = True)
+      table = TableSerializer(read_only = True)
+      customer = CustomerSerializer(read_only =True)
       class Meta:
            model = Booking
-           fields = '__all__'
-
+           fields = ['id','table','customer','booked_date','guests_number','table_number','pending','confirmed']
       
-
-
-
-
+      
 
 
 

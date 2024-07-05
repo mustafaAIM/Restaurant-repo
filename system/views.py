@@ -13,10 +13,15 @@ from system.models import Restaurant ,Category ,Dish , Table , Booking
 from rest_framework.permissions import IsAuthenticated
 from authentication.permissions import IsSuperUser
 from system.permissions import IsRestaurantManager
-from rest_framework.generics import ListCreateAPIView,RetrieveUpdateDestroyAPIView ,RetrieveAPIView ,RetrieveUpdateAPIView
-from django.shortcuts import get_object_or_404
+from rest_framework.generics import(ListCreateAPIView
+                                    ,RetrieveUpdateDestroyAPIView
+                                     ,ListAPIView 
+                                    ,RetrieveUpdateAPIView
+                                    ,CreateAPIView)
+from django.shortcuts import get_object_or_404,get_list_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from system.filters import DishFilter 
+from rest_framework.views import APIView
 # Create your views here.
 
 #Restaurant
@@ -24,7 +29,7 @@ class RestaurantViewSet(ModelViewSet):
       permission_classes = [IsAuthenticated]
       serializer_class = RestaurantSerializer
       queryset = Restaurant.objects.all()
-    
+      
  
       def create(self, request, *args, **kwargs):
             if request.user.is_superuser :
@@ -145,7 +150,50 @@ class RetrieveUpdateDestroyTable(RetrieveUpdateDestroyAPIView):
       permission_classes = [IsRestaurantManager]
 
 #Bookings
-class BookTableView(ListCreateAPIView):
+class ListBookingView(ListAPIView):
       serializer_class = BookingSerializer
-      queryset = Booking.objects.all()
+      permission_classes = [IsRestaurantManager]
+      def get_queryset(self):
+          if  'manager' in [group.name for group in self.request.user.groups.all()]:
+              restaurant = get_object_or_404(Restaurant,manager__user = self.request.user)
+              bookings = Booking.objects.filter(table__restaurant  = restaurant) 
+          elif 'customer' in [group.name for group in self.request.user.groups.all()]:
+              bookings = Booking.objects.filter(customer__user  = self.request.user) 
+          return bookings
       
+ 
+class CreateBookView(CreateAPIView):
+      serializer_class = BookingSerializer  
+      def create(self, request, *args, **kwargs):
+          restaurant = get_object_or_404(Restaurant,id = kwargs["id"])
+          table = restaurant.tables.get(number = request.data["table_number"])
+          data = request.data.copy()
+          if not table.booked :
+              table.booked = True
+              table.save()  
+              data["table"] = table
+          else : 
+              return Response({"message":"the table has been booked"},status.HTTP_400_BAD_REQUEST)
+          data["customer"] = request.user.customer
+          book_serializer = BookingSerializer(data = data)  
+          book_serializer.is_valid(raise_exception=True)
+          book_serializer.save()
+          return Response(book_serializer.data , status.HTTP_201_CREATED)
+      
+
+class UpdateBookingStatus(APIView): 
+    def patch(self, request, *args, **kwargs):
+        booking_id = kwargs.get('id')
+        booking = get_object_or_404(Booking, id=booking_id)
+        booked_status = request.data.get("booked")
+        if booked_status is not None:
+            booking.table.booked = booked_status
+            booking.table.save()
+            if not booking.confirmed :
+                   booking.confirmed = booked_status
+                   if booking.confirmed:
+                      booking.pending  = False
+            booking.save()
+            return Response({"message": "Booking status updated successfully"}, status=status.HTTP_200_OK)
+        else:
+            return Response({"message": "Invalid data"}, status=status.HTTP_400_BAD_REQUEST)

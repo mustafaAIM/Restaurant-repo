@@ -6,8 +6,10 @@ from system.views import (RestaurantViewSet ,
                           ListCreateTable,
                           RestaurantDeleteDish,
                           RetrieveUpdateDestroyTable, 
-                          BookTableView,
-                          MyRestaurantView)
+                          CreateBookView,
+                          MyRestaurantView,
+                          ListBookingView,
+                          UpdateBookingStatus)
 from django.urls import path
 
 router = DefaultRouter()
@@ -24,37 +26,23 @@ urlpatterns += [
     #my restaurant
     #retieve / update
     path('my-restaurant',MyRestaurantView.as_view()),  
-
-
+ 
 
     #Dish
     #delete dish
     path('my-restaurant/delete-dish/<id>',RestaurantDeleteDish.as_view({'delete':'delete_dish'})),
-
-
-
-
-
-
-
-    #tables CRUD 
-      #manager
-      path('my-restaurant/tables',ListCreateTable.as_view()),
-      path('my-restaurant/tables/<pk>',RetrieveUpdateDestroyTable.as_view()), 
  
 
-
-
-
-
-
-
+    #tables CRUD 
+      path('my-restaurant/tables',ListCreateTable.as_view()),
+      path('my-restaurant/tables/<pk>',RetrieveUpdateDestroyTable.as_view()), 
+  
     #book table management urls
       #manager
-       
-       
-      #customer
-       path('restaurant/<id>/booking',BookTableView.as_view()),
+       path('my-restaurant/bookings',ListBookingView.as_view()),
+       path('my-restaurant/bookings/<id>',UpdateBookingStatus.as_view()),
+       #customer
+       path('my-bookings/',ListBookingView.as_view()), 
+       path('restaurant/<id>/book-table',CreateBookView.as_view())
 
-# 
 ]

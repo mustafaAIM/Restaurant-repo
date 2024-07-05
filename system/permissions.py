@@ -4,8 +4,11 @@ from rest_framework.exceptions import PermissionDenied
 
 class IsRestaurantManager(BasePermission):
       def has_permission(self, request, view):
-           if request.user.is_anonymous:
-                  raise PermissionDenied("Login to edit your restaurant") 
+           if request.user.is_anonymous :
+                  raise PermissionDenied("Login to perform this action") 
+ 
+          
+          
            return True
       
       def has_object_permission(self, request, view, obj): 
