@@ -22,6 +22,7 @@ from django.shortcuts import get_object_or_404,get_list_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from system.filters import DishFilter 
 from rest_framework.views import APIView
+from rest_framework.permissions import AllowAny
 # Create your views here.
 
 #Restaurant
@@ -29,7 +30,12 @@ class RestaurantViewSet(ModelViewSet):
       permission_classes = [IsAuthenticated]
       serializer_class = RestaurantSerializer
       queryset = Restaurant.objects.all()
-      
+
+      def get_permissions(self):
+        if self.request.method == 'GET':
+            return [AllowAny()]
+        return [IsAuthenticated()]
+
  
       def create(self, request, *args, **kwargs):
             if request.user.is_superuser :
@@ -74,6 +80,7 @@ class DishViewSet(ModelViewSet):
           if self.action == 'retrieve':
               return DishDetailsSerializer
           return DishListCreateSerializer
+      
       
       def create(self, request, *args, **kwargs):
           if request.user.is_superuser: 
