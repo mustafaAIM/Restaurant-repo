@@ -40,6 +40,7 @@ class Restaurant(models.Model):
       name = models.CharField( max_length=255)
       location = models.CharField(max_length=255,null = True,blank=True)
       image = models.ImageField(null = True,blank = True)
+      description = models.CharField(max_length=512 , null = True,blank = True)
       work_from = models.CharField(max_length=255,null=True,blank=True)
       work_to = models.CharField(max_length=255,null=True,blank=True) 
       dishes = models.ManyToManyField(Dish)

@@ -6,7 +6,7 @@ urlpatterns = [
   path('login',CustomLoginView.as_view()),
   path('refresh',TokenRefreshView.as_view()),
   path('register-manager',ManagerRegister.as_view()),
-  path('profile/<pk>',Profile.as_view()),
+  path('my-profile',Profile.as_view()),
   path('managers',ListManager.as_view()),
   path('managers/<pk>',ManagerRetrieveUpdateDestroy.as_view()),
 

@@ -83,9 +83,7 @@ class TableSerializer(serializers.ModelSerializer):
                               "booked":{
                                           "read_only":True
                                         },
-                              "restaurant" : {
-                                   "write_only":True
-                              }
+                             
             
                    }
             

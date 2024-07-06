@@ -46,8 +46,30 @@ class CustomLoginView(TokenObtainPairView):
 #RetrieveUpdate Profile 
 class Profile(RetrieveUpdateAPIView):
       serializer_class = UserUpdateSerializer
-      permission_classes = [IsProfileUser,IsAuthenticated]
-      queryset = User.objects.all()      
+      permission_classes = [IsAuthenticated]
+
+
+      def get_queryset(self):
+          return User.objects.get(id = self.request.user.id)
+
+      def retrieve(self, request, *args, **kwargs):
+          user = UserDetailSerializer(request.user)
+          return Response(user.data,status.HTTP_200_OK)
+      
+      def partial_update(self, request, *args, **kwargs):
+              instance = request.user
+              serializer = self.get_serializer(instance, data=request.data, partial=True)
+              serializer.is_valid(raise_exception=True)
+              self.perform_update(serializer)
+              return Response(serializer.data, status=status.HTTP_200_OK)
+
+      def update(self, request, *args, **kwargs):
+              instance = request.user
+              serializer = self.get_serializer(instance, data=request.data)
+              serializer.is_valid(raise_exception=True)
+              self.perform_update(serializer)
+              return Response(serializer.data, status=status.HTTP_200_OK)
+      
 
 
 #Manager Retrieve/Update/Delete

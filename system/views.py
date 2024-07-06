@@ -22,7 +22,7 @@ from rest_framework.generics import(ListCreateAPIView
 
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from system.filters import DishFilter 
+from system.filters import DishFilter ,RestaurantFilter
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 # Create your views here.
@@ -43,7 +43,8 @@ class RestaurantViewSet(ModelViewSet):
 class MyRestaurantView(RetrieveUpdateAPIView): 
       serializer_class = RestaurantSerializer
       permission_classes = [IsRestaurantManager] 
-
+      filter_backends = [DjangoFilterBackend]
+      filterset_class = RestaurantFilter 
       def get_object(self):
           obj = get_object_or_404(Restaurant,manager__user = self.request.user)
           self.check_object_permissions(self.request,obj) 
@@ -56,10 +57,12 @@ class MyRestaurantView(RetrieveUpdateAPIView):
    
 #Category
 class CategoryViewSet(ModelViewSet):
-      permission_classes = [IsSuperUser]
       serializer_class = CategorySerializer
       queryset = Category.objects.all()
-       
+      def get_permissions(self):
+        if self.request.method == 'GET':
+            return [AllowAny()]
+        return [IsSuperUser()]
 
 #Dish
 class DishViewSet(ModelViewSet):
