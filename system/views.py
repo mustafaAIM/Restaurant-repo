@@ -32,7 +32,8 @@ from rest_framework.permissions import AllowAny
 class RestaurantViewSet(ModelViewSet):
       serializer_class = RestaurantSerializer
       queryset = Restaurant.objects.all()
-
+      filter_backends = [DjangoFilterBackend]
+      filterset_class = RestaurantFilter 
       def get_permissions(self):
         if self.request.method == 'GET':
             return [AllowAny()]
@@ -43,8 +44,7 @@ class RestaurantViewSet(ModelViewSet):
 class MyRestaurantView(RetrieveUpdateAPIView): 
       serializer_class = RestaurantSerializer
       permission_classes = [IsRestaurantManager] 
-      filter_backends = [DjangoFilterBackend]
-      filterset_class = RestaurantFilter 
+    
       def get_object(self):
           obj = get_object_or_404(Restaurant,manager__user = self.request.user)
           self.check_object_permissions(self.request,obj) 
