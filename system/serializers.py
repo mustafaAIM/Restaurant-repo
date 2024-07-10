@@ -123,11 +123,31 @@ class BookingSerializer(serializers.ModelSerializer):
       customer = CustomerSerializer(read_only =True)
       class Meta:
            model = Booking
-           fields = ['id','table','customer','booked_date','guests_number','table_number','pending','confirmed']
-      
+           fields = ['id','table','customer','booked_date','guests_number','table_number']
       
 
+      def to_internal_value(self, data):
+           customer = data["customer"]  
+           data =  super().to_internal_value(data)
+           data["customer"] = customer 
+           return data 
+      
+      def create(self, validated_data):
+        table_number = validated_data.pop('table_number')
+        table = Table.objects.get(number=table_number)
+        if table.booked:
+            raise serializers.ValidationError("The table has already been booked.")
+        table.booked = True
+        table.save()
 
+        booking = Booking.objects.create(table=table, **validated_data)
+        return booking
+
+
+
+class RestaurantListBookSerializer(BookingSerializer):
+     class Meta(BookingSerializer.Meta):
+           fields = BookingSerializer.Meta.fields + ["pending","confirmed"]
 
 
 #Restaurant Serializer

@@ -8,10 +8,10 @@ from system.serializers import (RestaurantSerializer
                                 ,AddDishesSerializer
                                 ,DishDetailsSerializer 
                                 , TableSerializer 
-                                ,BookingSerializer)
+                                ,BookingSerializer
+                                ,RestaurantListBookSerializer)
 
 from system.models import Restaurant ,Category ,Dish , Table , Booking
-from rest_framework.permissions import IsAuthenticated
 from authentication.permissions import IsSuperUser
 from system.permissions import IsRestaurantManager
 from rest_framework.generics import(ListCreateAPIView
@@ -136,6 +136,11 @@ class RetrieveUpdateDestroyTable(RetrieveUpdateDestroyAPIView):
 class ListBookingView(ListAPIView):
       serializer_class = BookingSerializer
       permission_classes = [IsRestaurantManager]
+
+      def get_serializer_class(self):
+          if  'manager' in [group.name for group in self.request.user.groups.all()]:   
+            return RestaurantListBookSerializer
+          return BookingSerializer
       def get_queryset(self):
           if  'manager' in [group.name for group in self.request.user.groups.all()]:
               restaurant = get_object_or_404(Restaurant,manager__user = self.request.user)
@@ -148,20 +153,24 @@ class ListBookingView(ListAPIView):
 class CreateBookView(CreateAPIView):
       serializer_class = BookingSerializer  
       def create(self, request, *args, **kwargs):
-          restaurant = get_object_or_404(Restaurant,id = kwargs["id"])
-          table = restaurant.tables.get(number = request.data["table_number"])
+          restaurant = get_object_or_404(Restaurant, id=kwargs["id"])
+          table_number = request.data.get("table_number")
+
+          try:
+              table = restaurant.tables.get(number=table_number)
+          except Table.DoesNotExist:
+              return Response({"message": "Table does not exist"}, status=status.HTTP_400_BAD_REQUEST)
+
+          if table.booked:
+              return Response({"message": "The table has been booked"}, status=status.HTTP_400_BAD_REQUEST)
+
           data = request.data.copy()
-          if not table.booked :
-              table.booked = True
-              table.save()  
-              data["table"] = table
-          else : 
-              return Response({"message":"the table has been booked"},status.HTTP_400_BAD_REQUEST)
           data["customer"] = request.user.customer
-          book_serializer = BookingSerializer(data = data)  
-          book_serializer.is_valid(raise_exception=True)
-          book_serializer.save()
-          return Response(book_serializer.data , status.HTTP_201_CREATED)
+          serializer = self.get_serializer(data=data)
+          serializer.is_valid(raise_exception=True)
+          serializer.save()
+
+          return Response(serializer.data, status=status.HTTP_201_CREATED)
       
 
 class UpdateBookingStatus(APIView): 
@@ -173,9 +182,8 @@ class UpdateBookingStatus(APIView):
             booking.table.booked = booked_status
             booking.table.save()
             if not booking.confirmed :
-                   booking.confirmed = booked_status
-                   if booking.confirmed:
-                      booking.pending  = False
+                   booking.confirmed = booked_status   
+                   booking.pending  = False
             booking.save()
             return Response({"message": "Booking status updated successfully"}, status=status.HTTP_200_OK)
         else:
