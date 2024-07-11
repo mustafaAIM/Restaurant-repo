@@ -18,3 +18,13 @@ class IsRestaurantManager(BasePermission):
             return bool(request.user == obj.manager.user)
         
         return False
+      
+
+class IsCustomer(BasePermission):
+     def has_permission(self, request, view):
+          if request.user.is_anonymous :
+                  raise PermissionDenied("Login to perform this action")    
+          if  'manager' in [group.name for group in request.user.groups.all()]:
+                  raise PermissionDenied("you are not a customer , please login with customer acount")
+          
+          return True

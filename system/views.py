@@ -9,11 +9,12 @@ from system.serializers import (RestaurantSerializer
                                 ,DishDetailsSerializer 
                                 , TableSerializer 
                                 ,BookingSerializer
-                                ,RestaurantListBookSerializer)
+                                ,RestaurantListBookSerializer
+                                ,ReviewSerializer)
 
 from system.models import Restaurant ,Category ,Dish , Table , Booking
 from authentication.permissions import IsSuperUser
-from system.permissions import IsRestaurantManager
+from system.permissions import IsRestaurantManager,IsCustomer
 from rest_framework.generics import(ListCreateAPIView
                                     ,RetrieveUpdateDestroyAPIView
                                      ,ListAPIView 
@@ -131,6 +132,23 @@ class RetrieveUpdateDestroyTable(RetrieveUpdateDestroyAPIView):
       permission_classes = [IsRestaurantManager]
       def get_queryset(self):
           return Table.objects.filter(restaurant__manager__user = self.request.user)
+      def patch(self, request, *args, **kwargs):
+          rest = get_object_or_404(Restaurant,manager__user= request.user)
+          data = request.data.copy()
+          data["restaurant"] = rest 
+          serializer = TableSerializer(data= data , instance=rest.tables.get(id = kwargs["pk"]),partial = True)
+          serializer.is_valid(raise_exception=True)
+          serializer.save()
+          return Response({"updated"},200)
+      
+      def update(self, request, *args, **kwargs):
+          rest = get_object_or_404(Restaurant,manager__user= request.user)
+          data = request.data.copy()
+          data["restaurant"] = rest 
+          serializer = TableSerializer(data= data , instance=rest.tables.get(id = kwargs["pk"]))
+          serializer.is_valid(raise_exception=True)
+          serializer.save()
+          return Response({"updated"},200)
 
 #Bookings
 class ListBookingView(ListAPIView):
@@ -154,22 +172,12 @@ class CreateBookView(CreateAPIView):
       serializer_class = BookingSerializer  
       def create(self, request, *args, **kwargs):
           restaurant = get_object_or_404(Restaurant, id=kwargs["id"])
-          table_number = request.data.get("table_number")
-
-          try:
-              table = restaurant.tables.get(number=table_number)
-          except Table.DoesNotExist:
-              return Response({"message": "Table does not exist"}, status=status.HTTP_400_BAD_REQUEST)
-
-          if table.booked:
-              return Response({"message": "The table has been booked"}, status=status.HTTP_400_BAD_REQUEST)
-
           data = request.data.copy()
+          data["restaurant"]=restaurant
           data["customer"] = request.user.customer
           serializer = self.get_serializer(data=data)
           serializer.is_valid(raise_exception=True)
           serializer.save()
-
           return Response(serializer.data, status=status.HTTP_201_CREATED)
       
 
@@ -188,3 +196,23 @@ class UpdateBookingStatus(APIView):
             return Response({"message": "Booking status updated successfully"}, status=status.HTTP_200_OK)
         else:
             return Response({"message": "Invalid data"}, status=status.HTTP_400_BAD_REQUEST)
+        
+
+
+
+
+#Reviews 
+class CreateReview(CreateAPIView):
+      serializer_class = ReviewSerializer
+      permission_classes = [IsCustomer]
+
+      def post(self, request, *args, **kwargs): 
+          restaurant = get_object_or_404(Restaurant,id = kwargs["id"])
+          data = request.data.copy()
+          data["restaurant"] = restaurant
+          data["customer"] = request.user.customer
+          serialized_review = ReviewSerializer(data = data)
+          serialized_review.is_valid(raise_exception=True)
+          serialized_review.save()
+          return Response(serialized_review.data,status.HTTP_201_CREATED)
+      

@@ -30,8 +30,7 @@ class Dish(models.Model):
       image = models.ImageField(null = True, blank = True)
       price = models.DecimalField(decimal_places=2,max_digits=10)
       description = models.TextField(null=True,blank = True)
-      categories = models.ManyToManyField(Category)
-
+      categories = models.ManyToManyField(Category) 
       def __str__(self) -> str:
            return self.name
       
@@ -46,9 +45,7 @@ class Restaurant(models.Model):
       dishes = models.ManyToManyField(Dish)
       lat =models.CharField(max_length=255,null = True,blank=True)
       lon = models.CharField(max_length=255,null = True,blank=True)
-      @property
-      def rate(self):
-        return self.review_set.aggregate(models.Avg('rate'))['rate__avg'] or 0
+      rate = models.DecimalField(decimal_places=2,max_digits=5 , null= True,blank=True)
       
       def __str__(self) -> str:
            return self.name
@@ -78,14 +75,18 @@ class Booking(models.Model):
 
     
 class Review(models.Model):
-    customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
-    restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE)
-    created_at = models.DateField(auto_now_add=True)
-    comment = models.TextField()
-    rate = models.IntegerField(
-        validators=[
-            MinValueValidator(1),
-            MaxValueValidator(5)
-        ]
-    )
+      customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
+      restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE)
+      created_at = models.DateField(auto_now_add=True)
+      comment = models.TextField()
+      rate = models.IntegerField(
+          validators=[
+              MinValueValidator(1),
+              MaxValueValidator(5)
+          ]
+      )
+
+      class Meta:
+          unique_together = ["customer","restaurant"]
+
 

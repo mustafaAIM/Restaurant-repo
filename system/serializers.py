@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from system.models import Restaurant , Manager , Category , Dish , Table,Booking,Customer
+from system.models import Restaurant , Manager , Category , Dish , Table,Booking,Customer,Review
 from authentication.models import User 
 from django.shortcuts import get_object_or_404
 from authentication.serializers import UserDetailSerializer
@@ -128,13 +128,16 @@ class BookingSerializer(serializers.ModelSerializer):
 
       def to_internal_value(self, data):
            customer = data["customer"]  
+           restaurant = data["restaurant"]
            data =  super().to_internal_value(data)
            data["customer"] = customer 
+           data["restaurant"] =restaurant
            return data 
       
       def create(self, validated_data):
         table_number = validated_data.pop('table_number')
-        table = Table.objects.get(number=table_number)
+        restaurant = validated_data.pop('restaurant')
+        table = restaurant.tables.get(number=table_number)
         if table.booked:
             raise serializers.ValidationError("The table has already been booked.")
         table.booked = True
@@ -150,15 +153,34 @@ class RestaurantListBookSerializer(BookingSerializer):
            fields = BookingSerializer.Meta.fields + ["pending","confirmed"]
 
 
+#Reviews
+class ReviewSerializer(serializers.ModelSerializer):
+      customer = CustomerSerializer(read_only = True)
+      class Meta:
+           model = Review 
+           fields = ["id","customer","comment","rate"]
+
+      def to_internal_value(self, data):
+           customer = data["customer"]
+           restaurant = data["restaurant"]
+           data= super().to_internal_value(data)
+           data["customer"] = customer
+           data["restaurant"] = restaurant
+           return data
+
+
+
+
 #Restaurant Serializer
 class RestaurantSerializer(serializers.ModelSerializer):
       manager = serializers.EmailField(required = True)
       tables = TableSerializer(read_only = True,many = True)
       dishes = DishListCreateSerializer(read_only = True,many = True)
+      reviews = ReviewSerializer(source = 'review_set',read_only = True,many = True)
       class Meta:
             model = Restaurant
-            exclude = [] 
-
+            fields = ["id","manager","tables","dishes","name","location","image","description","work_from","work_to","lat","lon","reviews","rate"]
+            extra_kwargs = {"rate":{"read_only":True}}
       def create(self, validated_data):
             email = validated_data.pop('manager',None)
             user =get_object_or_404(User,email=email).id

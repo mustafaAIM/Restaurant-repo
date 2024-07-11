@@ -9,7 +9,8 @@ from system.views import (RestaurantViewSet ,
                           CreateBookView,
                           MyRestaurantView,
                           ListBookingView,
-                          UpdateBookingStatus)
+                          UpdateBookingStatus,
+                          CreateReview)
 from django.urls import path
 
 router = DefaultRouter()
@@ -43,6 +44,10 @@ urlpatterns += [
        path('my-restaurant/bookings/<id>',UpdateBookingStatus.as_view()),
        #customer
        path('my-bookings/',ListBookingView.as_view()), 
-       path('restaurant/<id>/book-table',CreateBookView.as_view())
+       path('restaurant/<id>/book-table',CreateBookView.as_view()),
+    
+
+    #reviews
+       path('restaurant/<id>/reviews',CreateReview.as_view())
 
 ]
