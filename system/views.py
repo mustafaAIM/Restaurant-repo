@@ -216,3 +216,10 @@ class CreateReview(CreateAPIView):
           serialized_review.save()
           return Response(serialized_review.data,status.HTTP_201_CREATED)
       
+
+#List Top 4 Restaurant 
+class TopRatedRestaurantsView(ListAPIView):
+    serializer_class = RestaurantSerializer
+
+    def get_queryset(self):
+        return Restaurant.objects.exclude(rate__isnull=True).order_by('-rate')[:4]

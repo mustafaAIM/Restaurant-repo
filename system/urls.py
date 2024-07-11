@@ -10,7 +10,8 @@ from system.views import (RestaurantViewSet ,
                           MyRestaurantView,
                           ListBookingView,
                           UpdateBookingStatus,
-                          CreateReview)
+                          CreateReview,
+                          TopRatedRestaurantsView)
 from django.urls import path
 
 router = DefaultRouter()
@@ -48,6 +49,10 @@ urlpatterns += [
     
 
     #reviews
-       path('restaurant/<id>/reviews',CreateReview.as_view())
+       path('restaurant/<id>/reviews',CreateReview.as_view()),
+
+
+    #home page
+      path('top-rated-restaurants/', TopRatedRestaurantsView.as_view()),
 
 ]
