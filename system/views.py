@@ -10,9 +10,10 @@ from system.serializers import (RestaurantSerializer
                                 , TableSerializer 
                                 ,BookingSerializer
                                 ,RestaurantListBookSerializer
-                                ,ReviewSerializer)
+                                ,ReviewSerializer
+                                ,TopRestaurantSerializer)
 
-from system.models import Restaurant ,Category ,Dish , Table , Booking
+from system.models import Restaurant ,Category ,Dish , Table , Booking ,Customer,Manager
 from authentication.permissions import IsSuperUser
 from system.permissions import IsRestaurantManager,IsCustomer
 from rest_framework.generics import(ListCreateAPIView
@@ -26,6 +27,8 @@ from django_filters.rest_framework import DjangoFilterBackend
 from system.filters import DishFilter ,RestaurantFilter
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
+from authentication.models import User
+from django.db.models import Count ,Q
 # Create your views here.
 
 
@@ -205,7 +208,8 @@ class CancelBooking(APIView):
         if book.pending :
            book.delete()
            book.save()
-        return Response(204)
+           return Response(204)
+        return Response({"you book has been submitted"})
       
 
 #Reviews 
@@ -229,3 +233,31 @@ class TopRatedRestaurantsView(ListAPIView):
 
     def get_queryset(self):
         return Restaurant.objects.exclude(rate__isnull=True).order_by('-rate')[:4]
+    
+
+
+#Admin Dashboard
+class AdminDashboardView(APIView):
+    permission_classes = [IsSuperUser]
+    def get(self, request):
+     
+        customers_count = Customer.objects.count()
+        managers_count = Manager.objects.count()
+        restaurant_count = Restaurant.objects.count()
+        booking_count = Booking.objects.filter(confirmed=True).count() 
+         # Top 5 restaurants according to the number of bookings
+        top_restaurants = (
+            Restaurant.objects.annotate(booking_count=Count('tables__booking', filter=Q(tables__booking__confirmed=True)))
+            .order_by('-booking_count')[:5]
+        )
+        top_restaurants_data = TopRestaurantSerializer(top_restaurants, many=True).data
+
+        data = {
+            'customers_count': customers_count,
+            'managers_count':managers_count,
+            'restaurant_count': restaurant_count,
+            'booking_count': booking_count,
+            'top_restaurants': top_restaurants_data
+        }
+        
+        return Response(data)

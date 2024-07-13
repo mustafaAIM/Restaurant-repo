@@ -12,7 +12,8 @@ from system.views import (RestaurantViewSet ,
                           UpdateBookingStatus,
                           CreateReview,
                           TopRatedRestaurantsView,
-                          CancelBooking)
+                          CancelBooking,
+                          AdminDashboardView)
 from django.urls import path
 
 router = DefaultRouter()
@@ -26,6 +27,12 @@ router.register("my-restaurant",RestaurantAddDishes,basename="add dishes to rest
 urlpatterns = router.urls
 
 urlpatterns += [
+
+    #Admin
+    path("admin/dashboard",AdminDashboardView.as_view()),
+
+
+
     #my restaurant
     #retieve / update
     path('my-restaurant',MyRestaurantView.as_view()),  
