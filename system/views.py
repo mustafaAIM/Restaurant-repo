@@ -199,7 +199,14 @@ class UpdateBookingStatus(APIView):
         
 
 
-
+class CancelBooking(APIView):
+    def delete(self,request,*args,**kwargs):
+        book = get_object_or_404(Booking,id = kwargs['pk'])
+        if book.pending :
+           book.delete()
+           book.save()
+        return Response(204)
+      
 
 #Reviews 
 class CreateReview(CreateAPIView):

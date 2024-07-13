@@ -11,7 +11,8 @@ from system.views import (RestaurantViewSet ,
                           ListBookingView,
                           UpdateBookingStatus,
                           CreateReview,
-                          TopRatedRestaurantsView)
+                          TopRatedRestaurantsView,
+                          CancelBooking)
 from django.urls import path
 
 router = DefaultRouter()
@@ -46,6 +47,7 @@ urlpatterns += [
        #customer
        path('my-bookings/',ListBookingView.as_view()), 
        path('restaurant/<id>/book-table',CreateBookView.as_view()),
+       path('my-bookings/<pk>',CancelBooking.as_view()),
     
 
     #reviews

@@ -9,6 +9,5 @@ urlpatterns = [
   path('my-profile',Profile.as_view()),
   path('managers',ListManager.as_view()),
   path('managers/<pk>',ManagerRetrieveUpdateDestroy.as_view()),
-
   path('about',SiteView.as_view()),
 ]
