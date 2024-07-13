@@ -204,8 +204,7 @@ class UpdateBookingStatus(APIView):
 #Reviews 
 class CreateReview(CreateAPIView):
       serializer_class = ReviewSerializer
-      permission_classes = [IsCustomer]
-
+      permission_classes = [IsCustomer] 
       def post(self, request, *args, **kwargs): 
           restaurant = get_object_or_404(Restaurant,id = kwargs["id"])
           data = request.data.copy()

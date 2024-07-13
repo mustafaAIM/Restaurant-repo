@@ -123,8 +123,15 @@ class BookingSerializer(serializers.ModelSerializer):
       customer = CustomerSerializer(read_only =True)
       class Meta:
            model = Booking
-           fields = ['id','table','customer','booked_date','guests_number','table_number']
-      
+           fields = ['id','table','customer','booked_date','guests_number','table_number','pending','confirmed']
+           extra_kwargs = {
+                "pending":{
+                     "read_only":True
+                },
+                "confirmed":{
+                      "read_only":True
+                }
+           }      
 
       def to_internal_value(self, data):
            customer = data["customer"]  

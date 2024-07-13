@@ -1,7 +1,7 @@
 from rest_framework.serializers import ModelSerializer
 from django.contrib.auth import get_user_model
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-
+from .models import SiteSettings
 
 class BaseUserSerializer(ModelSerializer):
     class Meta:
@@ -50,4 +50,9 @@ class CustomTokenObtainPairsSerializer(TokenObtainPairSerializer):
         data['role'] = user.groups.all().first().name 
         return data
 
-    
+
+#site
+class SiteSerializer(ModelSerializer):
+    class Meta:
+        model = SiteSettings
+        fields = "__all__"

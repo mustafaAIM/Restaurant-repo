@@ -2,6 +2,12 @@ from typing import Any, Coroutine
 from django.db import models
 from django.contrib.auth.models import BaseUserManager,AbstractUser
 # Create your models here.
+class SiteSettings(models.Model):
+    email = models.EmailField(max_length=254, help_text="The email address for the site.")
+    phone = models.CharField(max_length=20, help_text="The phone number for the site.")
+    facebook_url = models.URLField(max_length=200, help_text="The Facebook URL for the site.")
+    terms_and_conditions = models.TextField(help_text="The terms and conditions for the site.")
+    privacy_policy = models.TextField(help_text="The privacy policy for the site.")
 
 
 class CustomUserManager(BaseUserManager):

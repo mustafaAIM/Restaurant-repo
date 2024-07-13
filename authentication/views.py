@@ -1,18 +1,18 @@
 from rest_framework.views import APIView
-from authentication.serializers import CustomTokenObtainPairsSerializer,UserRegistrationSerializer ,UserUpdateSerializer , UserDetailSerializer
+from authentication.serializers import CustomTokenObtainPairsSerializer,UserRegistrationSerializer ,UserUpdateSerializer , UserDetailSerializer ,SiteSerializer
 from rest_framework.response import Response
-from authentication.permissions import IsSuperUser ,IsProfileUser
+from authentication.permissions import IsSuperUser 
 from rest_framework import status
 from rest_framework_simplejwt.authentication import JWTAuthentication 
 from rest_framework_simplejwt.views import TokenObtainPairView
 from django.contrib.auth.models import Group 
-from rest_framework.generics import RetrieveUpdateAPIView , RetrieveUpdateDestroyAPIView , ListAPIView
+from rest_framework.generics import RetrieveUpdateAPIView , RetrieveUpdateDestroyAPIView , ListAPIView , CreateAPIView , UpdateAPIView
 from authentication.models import User
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated , AllowAny
 from django.apps import apps 
 from django.shortcuts import get_object_or_404
-
-
+from rest_framework.exceptions import ValidationError
+from .models import SiteSettings
 class UserRegistrationMixin:
     serializer_class = UserRegistrationSerializer
     def register_user(self, request, group_name):
@@ -57,18 +57,46 @@ class Profile(RetrieveUpdateAPIView):
           return Response(user.data,status.HTTP_200_OK)
       
       def partial_update(self, request, *args, **kwargs):
-              instance = request.user
-              serializer = self.get_serializer(instance, data=request.data, partial=True)
-              serializer.is_valid(raise_exception=True)
-              self.perform_update(serializer)
-              return Response(serializer.data, status=status.HTTP_200_OK)
+                instance = request.user
+                old_password = new_password = ""
+                if 'old_pass' in request.data.keys():
+                  old_password = request.data.get('old_pass')
+                  new_password = request.data.get('new_pass')
+                  
+                # Verify the old password
+                if old_password and not instance.check_password(old_password):
+                    raise ValidationError({'old_pass': 'Old password is incorrect'})
+                
+                # If new_password is provided, add it to the validated_data
+                data = request.data.copy()
+                if 'password' in data.keys():
+                     data.pop('password')
+                if new_password:
+                    data['password'] = new_password
+                
+                serializer = self.get_serializer(instance, data=data, partial=True)
+                serializer.is_valid(raise_exception=True)
+                self.perform_update(serializer)
+                return Response(serializer.data, status=status.HTTP_200_OK)
 
       def update(self, request, *args, **kwargs):
-              instance = request.user
-              serializer = self.get_serializer(instance, data=request.data)
-              serializer.is_valid(raise_exception=True)
-              self.perform_update(serializer)
-              return Response(serializer.data, status=status.HTTP_200_OK)
+                instance = request.user
+                old_password = request.data.get('old_pass')
+                new_password = request.data.get('new_pass')
+                
+                # Verify the old password
+                if old_password and not instance.check_password(old_password):
+                    raise ValidationError({'old_pass': 'Old password is incorrect'})
+                
+                # If new_password is provided, add it to the validated_data
+                data = request.data.copy()
+                if new_password:
+                    data['password'] = new_password
+                
+                serializer = self.get_serializer(instance, data=data)
+                serializer.is_valid(raise_exception=True)
+                self.perform_update(serializer)
+                return Response(serializer.data, status=status.HTTP_200_OK)
       
 
 
@@ -105,3 +133,33 @@ class ListManager(ListAPIView):
       def get_queryset(self):
           return  Group.objects.get(name='manager').user_set.all()
       
+
+
+#site
+class SiteView(RetrieveUpdateAPIView):
+      serializer_class = SiteSerializer  
+      queryset = SiteSettings.objects.all().first()
+
+      def get_permissions(self):
+              if self.request.method == 'GET':
+                  return [AllowAny()]
+              return [IsSuperUser()]
+ 
+      def patch(self, request, *args, **kwargs):
+          site = self.queryset
+          site_serializer = SiteSerializer(site , data= request.data,partial = True)
+          site_serializer.is_valid(raise_exception=True)
+          site_serializer.save()
+          return Response(site_serializer.data)
+
+      def update(self, request, *args, **kwargs):
+          site = self.queryset
+          site_serializer = SiteSerializer(site , data= request.data)
+          site_serializer.is_valid(raise_exception=True)
+          site_serializer.save()
+          return Response(site_serializer.data)
+ 
+      def retrieve(self, request, *args, **kwargs): 
+           site = self.queryset 
+           site_serializer = SiteSerializer(site)
+           return Response(site_serializer.data)

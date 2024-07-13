@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import CustomerRegister,ManagerRegister,CustomLoginView,Profile , ManagerRetrieveUpdateDestroy ,ListManager
+from .views import CustomerRegister,ManagerRegister,CustomLoginView,Profile , ManagerRetrieveUpdateDestroy ,ListManager,SiteView
 from rest_framework_simplejwt.views import TokenRefreshView
 urlpatterns = [
   path('register',CustomerRegister.as_view()),
@@ -10,4 +10,5 @@ urlpatterns = [
   path('managers',ListManager.as_view()),
   path('managers/<pk>',ManagerRetrieveUpdateDestroy.as_view()),
 
+  path('about',SiteView.as_view()),
 ]
