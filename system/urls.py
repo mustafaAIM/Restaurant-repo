@@ -13,7 +13,8 @@ from system.views import (RestaurantViewSet ,
                           CreateReview,
                           TopRatedRestaurantsView,
                           CancelBooking,
-                          AdminDashboardView)
+                          AdminDashboardView,
+                          ManagerDashboardView)
 from django.urls import path
 
 router = DefaultRouter()
@@ -34,6 +35,8 @@ urlpatterns += [
 
 
     #my restaurant
+    #dashboard 
+    path('my-restaurant/dashboard',ManagerDashboardView.as_view()),
     #retieve / update
     path('my-restaurant',MyRestaurantView.as_view()),  
  

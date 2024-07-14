@@ -195,11 +195,22 @@ class RestaurantSerializer(serializers.ModelSerializer):
             manager = get_object_or_404(Manager,user = user)
             validated_data['manager'] = manager     
             return super().create(validated_data=validated_data)
-    
-      
+
+
 class TopRestaurantSerializer(serializers.ModelSerializer):
     booking_count = serializers.IntegerField()
 
     class Meta:
         model = Restaurant
         fields = ['name', 'booking_count']
+
+
+ 
+class MonthlyBookingSerializer(serializers.Serializer):
+    month = serializers.CharField()
+    count = serializers.IntegerField()
+
+class ManagerDashboardSerializer(serializers.Serializer):
+    booking_count = serializers.IntegerField()
+    unique_customers_count = serializers.IntegerField()
+    monthly_bookings = MonthlyBookingSerializer(many=True)

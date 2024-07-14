@@ -11,7 +11,8 @@ from system.serializers import (RestaurantSerializer
                                 ,BookingSerializer
                                 ,RestaurantListBookSerializer
                                 ,ReviewSerializer
-                                ,TopRestaurantSerializer)
+                                ,TopRestaurantSerializer
+                                ,ManagerDashboardSerializer)
 
 from system.models import Restaurant ,Category ,Dish , Table , Booking ,Customer,Manager
 from authentication.permissions import IsSuperUser
@@ -29,6 +30,12 @@ from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 from authentication.models import User
 from django.db.models import Count ,Q
+from django.utils.timezone import now
+from collections import defaultdict
+import calendar
+
+
+
 # Create your views here.
 
 
@@ -206,8 +213,7 @@ class CancelBooking(APIView):
     def delete(self,request,*args,**kwargs):
         book = get_object_or_404(Booking,id = kwargs['pk'])
         if book.pending :
-           book.delete()
-           book.save()
+           book.delete() 
            return Response(204)
         return Response({"you book has been submitted"})
       
@@ -261,3 +267,41 @@ class AdminDashboardView(APIView):
         }
         
         return Response(data)
+    
+
+
+#Manger Dashboard
+class ManagerDashboardView(APIView):
+      permission_classes = [IsRestaurantManager]
+
+     
+      def get(self, request): 
+            manager = request.user.manager
+             
+            restaurant = Restaurant.objects.get(manager=manager)
+             
+            booking_count = Booking.objects.filter(table__restaurant=restaurant).count() 
+            unique_customers_count = Booking.objects.filter(table__restaurant=restaurant).values('customer').distinct().count()
+             
+            current_year = now().year
+            bookings = Booking.objects.filter(
+                table__restaurant=restaurant,
+                confirmed=True,
+                booked_date__year=current_year
+            )
+
+            monthly_bookings = defaultdict(int)
+            for booking in bookings:
+                month = booking.booked_date.strftime('%b').upper()
+                monthly_bookings[month] += 1
+
+            monthly_bookings_list = [{'month': month, 'count': count} for month, count in monthly_bookings.items()]
+
+            data = {
+                'booking_count': booking_count,
+                'customers_count': unique_customers_count,
+                'monthly_bookings': monthly_bookings_list
+            }
+            
+            serializer = ManagerDashboardSerializer(data)
+            return Response(serializer.data)
