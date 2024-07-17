@@ -124,13 +124,16 @@ class BookingSerializer(serializers.ModelSerializer):
       restaurant = serializers.CharField(source = 'table.restaurant.name',read_only = True)
       class Meta:
            model = Booking
-           fields = ['id','table','customer','booked_date','guests_number','table_number','pending','confirmed','restaurant']
+           fields = ['id','table','customer','booked_date','guests_number','table_number','pending','confirmed','restaurant','done']
            extra_kwargs = {
                 "pending":{
                      "read_only":True
                 },
                 "confirmed":{
                       "read_only":True
+                },
+                "done":{
+                     "read_only":True
                 }
            }      
 
