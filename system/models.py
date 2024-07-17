@@ -68,7 +68,7 @@ class Booking(models.Model):
       guests_number = models.PositiveBigIntegerField(default=0)
       confirmed = models.BooleanField(default=False)
       booked_date = models.DateTimeField() 
-
+      done = models.BooleanField(default=False)
       
 
 

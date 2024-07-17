@@ -216,7 +216,15 @@ class CancelBooking(APIView):
            book.delete() 
            return Response(204)
         return Response({"you book has been submitted"})
-      
+
+class BookingDone(APIView):
+      def patch(self, request,*args,**kwargs):
+          booking  = Booking.objects.get(id = kwargs["id"])
+          booking.done = True 
+          booking.table.booked = False 
+          booking.table.save()
+          booking.save()
+          return Response({"message":"booking has been done"},200)
 
 #Reviews 
 class CreateReview(CreateAPIView):
