@@ -276,40 +276,41 @@ class AdminDashboardView(APIView):
         
         return Response(data)
     
-
-
-#Manger Dashboard
 class ManagerDashboardView(APIView):
-      permission_classes = [IsRestaurantManager]
+    permission_classes = [IsRestaurantManager]
 
-     
-      def get(self, request): 
-            manager = request.user.manager
-             
-            restaurant = Restaurant.objects.get(manager=manager)
-             
-            booking_count = Booking.objects.filter(table__restaurant=restaurant).count() 
-            unique_customers_count = Booking.objects.filter(table__restaurant=restaurant).values('customer').distinct().count()
-             
-            current_year = now().year
-            bookings = Booking.objects.filter(
-                table__restaurant=restaurant,
-                confirmed=True,
-                booked_date__year=current_year
-            )
+    def get(self, request):
+        manager = request.user.manager
+        restaurant = Restaurant.objects.get(manager=manager)
 
-            monthly_bookings = defaultdict(int)
-            for booking in bookings:
-                month = booking.booked_date.strftime('%b').upper()
+        booking_count = Booking.objects.filter(table__restaurant=restaurant, done = True).count()
+        unique_customers_count = Booking.objects.filter(table__restaurant=restaurant).values('customer').distinct().count()
+
+        current_year = now().year
+        bookings = Booking.objects.filter(
+            table__restaurant=restaurant,
+            done=True,
+            booked_date__year=current_year
+        )
+
+        # Initialize all months with 0 bookings
+        monthly_bookings = {month: 0 for month in ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']}
+        
+        # Update the dictionary with actual booking counts
+        for booking in bookings:
+            month = booking.booked_date.strftime('%b').upper()
+            if month in monthly_bookings:
                 monthly_bookings[month] += 1
 
-            monthly_bookings_list = [{'month': month, 'count': count} for month, count in monthly_bookings.items()]
+        # Convert to list of dicts and sort by month order
+        monthly_bookings_list = [{'month': month, 'count': count} for month, count in monthly_bookings.items()]
+        month_order = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
+        monthly_bookings_list = sorted(monthly_bookings_list, key=lambda x: month_order.index(x['month']))
 
-            data = {
-                'booking_count': booking_count,
-                'customers_count': unique_customers_count,
-                'monthly_bookings': monthly_bookings_list
-            }
-            
-            serializer = ManagerDashboardSerializer(data)
-            return Response(serializer.data)
+        data = {
+            'booking_count': booking_count,
+            'customers_count': unique_customers_count,
+            'monthly_bookings': monthly_bookings_list
+        }
+
+        return Response(data)
