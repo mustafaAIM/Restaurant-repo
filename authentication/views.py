@@ -1,5 +1,6 @@
 from rest_framework.views import APIView
-from authentication.serializers import CustomTokenObtainPairsSerializer,UserRegistrationSerializer ,UserUpdateSerializer , UserDetailSerializer ,SiteSerializer
+from rest_framework import generics
+from authentication.serializers import CustomTokenObtainPairsSerializer,UserRegistrationSerializer ,UserUpdateSerializer , UserDetailSerializer ,SiteSerializer ,ResetPasswordEmailRequestSerializer,SetNewPasswordSerializer
 from rest_framework.response import Response
 from authentication.permissions import IsSuperUser 
 from rest_framework import status
@@ -13,6 +14,16 @@ from django.apps import apps
 from django.shortcuts import get_object_or_404
 from rest_framework.exceptions import ValidationError
 from .models import SiteSettings
+
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from django.utils.encoding import smart_bytes
+from django.utils.http import urlsafe_base64_encode 
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags 
+
+from server import settings
+
 class UserRegistrationMixin:
     serializer_class = UserRegistrationSerializer
     def register_user(self, request, group_name):
@@ -163,3 +174,50 @@ class SiteView(RetrieveUpdateAPIView):
            site = self.queryset 
            site_serializer = SiteSerializer(site)
            return Response(site_serializer.data)
+      
+
+
+
+
+
+      #For reset password
+class RequestPasswordResetEmail(generics.GenericAPIView):
+      serializer_class = ResetPasswordEmailRequestSerializer
+      def post(self,request): 
+            email = request.data['email']
+            if User.objects.filter(email = email).exists():
+                 user = User.objects.get(email = email)
+                 uidb64 = urlsafe_base64_encode(smart_bytes(user.id))  
+                 token = PasswordResetTokenGenerator().make_token(user)
+                 absurl = 'http://localhost:3000/reset-password/'+uidb64+"/"+str(token)
+               
+                #template
+                 context = {
+                      "user":user,
+                      "url":absurl
+                 }
+                 convert_to_html_content =  render_to_string(
+                          template_name="authentication/reset.html",
+                          context=context
+                  )
+                 plain_message = strip_tags(convert_to_html_content)
+                 send_mail(
+                    subject="Receiver information from a form",
+                    message=plain_message,
+                    recipient_list=[email]  ,
+                    from_email= settings.EMAIL_HOST_USER,
+                    html_message=convert_to_html_content,
+                    fail_silently=True  ) 
+                 return Response({"success":"we have sent you a link to reset your password"},status=status.HTTP_200_OK)
+            return Response("error")
+  
+                
+
+
+
+class SetNewPasswordAPIView(generics.GenericAPIView):
+      serializer_class = SetNewPasswordSerializer
+      def patch(self,request):
+          serializer =  self.serializer_class(data = request.data)
+          serializer.is_valid(raise_exception = True)
+          return Response({"success":True , "message":"password reset successfully"},status=status.HTTP_200_OK)
