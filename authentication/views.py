@@ -189,7 +189,7 @@ class RequestPasswordResetEmail(generics.GenericAPIView):
                  user = User.objects.get(email = email)
                  uidb64 = urlsafe_base64_encode(smart_bytes(user.id))  
                  token = PasswordResetTokenGenerator().make_token(user)
-                 absurl = 'http://localhost:3000/reset-password/'+uidb64+"/"+str(token)
+                 absurl = 'https://resto-hub.netlify.app/reset-password/'+uidb64+"/"+str(token)
                
                 #template
                  context = {
