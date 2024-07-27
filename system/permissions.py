@@ -27,4 +27,4 @@ class IsCustomer(BasePermission):
           if  'manager' in [group.name for group in request.user.groups.all()]:
                   raise PermissionDenied("you are not a customer , please login with customer acount")
           
-          return True
+          return hasattr(request.user , 'customer')

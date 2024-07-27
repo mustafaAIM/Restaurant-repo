@@ -14,7 +14,9 @@ from system.views import (RestaurantViewSet ,
                           TopRatedRestaurantsView,
                           CancelBooking,
                           AdminDashboardView,
-                          ManagerDashboardView,BookingDone)
+                          ManagerDashboardView,
+                          BookingDone,
+                          FavoriteAPIView)
 from django.urls import path
 
 router = DefaultRouter()
@@ -66,6 +68,10 @@ urlpatterns += [
 
 
     #home page
-      path('top-rated-restaurants/', TopRatedRestaurantsView.as_view()),
+      path('top-rated-restaurants', TopRatedRestaurantsView.as_view()),
+
+
+   #favorite 
+      path('favorites',FavoriteAPIView.as_view()),
 
 ]

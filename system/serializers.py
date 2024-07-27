@@ -1,16 +1,27 @@
 from rest_framework import serializers
-from system.models import Restaurant , Manager , Category , Dish , Table,Booking,Customer,Review
+from system.models import Restaurant , Manager , Category , Dish , Table,Booking,Customer,Review,ParentCategory,Favorite
 from authentication.models import User 
-from django.shortcuts import get_object_or_404
-from authentication.serializers import UserDetailSerializer
-from rest_framework.exceptions import ValidationError
+from django.shortcuts import get_object_or_404 
 #category serializer
+class ParentCategorySerializer(serializers.ModelSerializer):
+     class Meta:
+          model = ParentCategory
+          fields = "__all__"
+
+
+
 class CategorySerializer(serializers.ModelSerializer):
+      parent = ParentCategorySerializer()
       class Meta: 
             model = Category
             fields = "__all__"
+      
+      def to_internal_value(self, data):
+           return data  
 
-
+      def create(self, validated_data):
+           validated_data["parent"] = get_object_or_404(ParentCategory,id = validated_data["parent"])
+           return super().create(validated_data)
 
 #Dish Serializers
 class DishListCreateSerializer(serializers.ModelSerializer):
@@ -47,7 +58,7 @@ class DishListCreateSerializer(serializers.ModelSerializer):
 
       def to_representation(self, instance):
            data = super().to_representation(instance)
-           data["categories"] = [{"id":category.id,"category":category.name} for category in instance.categories.all() ]
+           data["categories"] = [{"id":category.id,"category":category.name ,"parent":ParentCategorySerializer(ParentCategory.objects.get(id = category.parent.id)).data if category.parent != None else None} for category in instance.categories.all() ]
            return data
 
 
@@ -217,3 +228,30 @@ class ManagerDashboardSerializer(serializers.Serializer):
     booking_count = serializers.IntegerField()
     unique_customers_count = serializers.IntegerField()
     monthly_bookings = MonthlyBookingSerializer(many=True)
+
+
+
+
+
+class FavoriteSerializer(serializers.ModelSerializer):
+     restaurant = RestaurantSerializer(read_only = True)
+     class Meta:
+          model = Favorite
+          fields = '__all__'
+          extra_kwargs = {
+               "customer":{
+                    "write_only":True
+               }
+          }
+     def to_internal_value(self, data):
+          customer = data["customer"]
+          restaurant = data["restaurant"]
+          data = super().to_internal_value(data)
+          data["customer"] = customer
+          data["restaurant"] = restaurant
+          return data
+      
+     def create(self, validated_data):
+           validated_data["customer"] = Customer.objects.get(id = validated_data["customer"])
+           validated_data["restaurant"] = Restaurant.objects.get(id = validated_data["restaurant"])
+           return super().create(validated_data)

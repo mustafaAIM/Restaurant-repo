@@ -18,8 +18,20 @@ class Customer(models.Model):
       def __str__(self) -> str:
            return f"{self.user.first_name} {self.user.last_name}"
 
+
+
+class ParentCategory(models.Model):
+     name = models.CharField(max_length=255)
+
+     def __str__(self) -> str:
+          return f"{self.name}"
+
+
+
+
 class Category(models.Model):
       name =  models.CharField(max_length=255)
+      parent = models.OneToOneField(ParentCategory,on_delete=models.CASCADE,null = True,blank=True)
       def __str__(self) -> str:
            return self.name
 
@@ -90,3 +102,13 @@ class Review(models.Model):
           unique_together = ["customer","restaurant"]
 
 
+
+
+
+class Favorite(models.Model):
+      customer = models.ForeignKey(Customer,on_delete=models.CASCADE)
+      restaurant = models.ForeignKey(Restaurant,on_delete=models.CASCADE)
+      
+      def __str__(self) -> str:
+           return f"{self.customer.user.username} love {self.restaurant.name}"
+      

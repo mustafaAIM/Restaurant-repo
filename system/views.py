@@ -12,7 +12,7 @@ from system.serializers import (RestaurantSerializer
                                 ,RestaurantListBookSerializer
                                 ,ReviewSerializer
                                 ,TopRestaurantSerializer
-                                ,ManagerDashboardSerializer)
+                                ,FavoriteSerializer)
 
 from system.models import Restaurant ,Category ,Dish , Table , Booking ,Customer,Manager
 from authentication.permissions import IsSuperUser
@@ -23,6 +23,7 @@ from rest_framework.generics import(ListCreateAPIView
                                     ,RetrieveUpdateAPIView
                                     ,CreateAPIView)
 
+from rest_framework.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from system.filters import DishFilter ,RestaurantFilter
@@ -49,7 +50,17 @@ class RestaurantViewSet(ModelViewSet):
         if self.request.method == 'GET':
             return [AllowAny()]
         return [IsSuperUser()]
- 
+
+      def get_queryset(self):
+          if self.request.user.is_superuser:
+              # If the user is a superuser, return all restaurants
+              return Restaurant.objects.all()
+          
+          # For non-superuser users, filter the restaurants based on the criteria
+          return Restaurant.objects.filter(
+              (Q(tables__isnull=False) & Q(dishes__isnull=False))
+          ).distinct()
+
  
 
 class MyRestaurantView(RetrieveUpdateAPIView): 
@@ -74,6 +85,8 @@ class CategoryViewSet(ModelViewSet):
         if self.request.method == 'GET':
             return [AllowAny()]
         return [IsSuperUser()]
+      
+      
 
 #Dish
 class DishViewSet(ModelViewSet):
@@ -213,6 +226,8 @@ class CancelBooking(APIView):
     def delete(self,request,*args,**kwargs):
         book = get_object_or_404(Booking,id = kwargs['pk'])
         if book.pending :
+           book.table.booked = False
+           book.table.save()
            book.delete() 
            return Response(204)
         return Response({"you book has been submitted"})
@@ -232,6 +247,8 @@ class CreateReview(CreateAPIView):
       permission_classes = [IsCustomer] 
       def post(self, request, *args, **kwargs): 
           restaurant = get_object_or_404(Restaurant,id = kwargs["id"])
+          if request.user.customer in [ review.customer   for review in restaurant.review_set.all()]:
+              raise ValidationError({"message":"you can't rate a restaurant twice"})
           data = request.data.copy()
           data["restaurant"] = restaurant
           data["customer"] = request.user.customer
@@ -314,3 +331,30 @@ class ManagerDashboardView(APIView):
         }
 
         return Response(data)
+    
+
+
+#favorite 
+
+class FavoriteAPIView(ListCreateAPIView):
+      serializer_class = FavoriteSerializer
+      permission_classes = [IsCustomer]
+      def get(self, request, *args, **kwargs):
+          favorites_serializer = FavoriteSerializer(request.user.customer.favorite_set.all(),many = True)
+          return Response(favorites_serializer.data)
+      
+
+      def post(self, request, *args, **kwargs):
+          customer = request.user.customer 
+          if request.data["restaurant"] in [f.restaurant.id for f in request.user.customer.favorite_set.all()]:
+                raise ValidationError({"message":"the restaurant already in you favorite list"})
+          data = {
+              "customer":customer.id,
+              "restaurant":request.data["restaurant"]
+          }
+          serialized_data = FavoriteSerializer(data = data)
+          serialized_data.is_valid(raise_exception=True)
+          serialized_data.save()
+
+          return Response(serialized_data.data)
+          
