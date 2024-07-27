@@ -17,7 +17,7 @@ from system.views import (RestaurantViewSet ,
                           ManagerDashboardView,
                           BookingDone,
                           FavoriteAPIView,
-                          FavoriteDelete)
+                          FavoriteDelete,ParentCategory)
 from django.urls import path
 
 router = DefaultRouter()
@@ -76,5 +76,7 @@ urlpatterns += [
       path('favorites',FavoriteAPIView.as_view()),
       path('favorites-delete',FavoriteDelete.as_view()),
       
+   # parent category 
+     path('parent-categories',ParentCategory.as_view())
 
 ]

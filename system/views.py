@@ -12,9 +12,10 @@ from system.serializers import (RestaurantSerializer
                                 ,RestaurantListBookSerializer
                                 ,ReviewSerializer
                                 ,TopRestaurantSerializer
-                                ,FavoriteSerializer)
+                                ,FavoriteSerializer,
+                                ParentCategorySerializer)
 
-from system.models import Restaurant ,Category ,Dish , Table , Booking ,Customer,Manager,Favorite
+from system.models import Restaurant ,Category ,Dish , Table , Booking ,Customer,Manager,Favorite,ParentCategory
 from authentication.permissions import IsSuperUser
 from system.permissions import IsRestaurantManager,IsCustomer
 from rest_framework.generics import(ListCreateAPIView
@@ -365,4 +366,7 @@ class FavoriteDelete(APIView):
           favorite = request.user.customer.favorite_set.get(restaurant = request.data["restaurant"])
           favorite.delete()
           return Response({"deleted successfully"},204)
-      
+
+class ParentCategory(ListAPIView):
+      serializer_class = ParentCategorySerializer
+      queryset = ParentCategory.objects.all()
