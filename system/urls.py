@@ -16,7 +16,8 @@ from system.views import (RestaurantViewSet ,
                           AdminDashboardView,
                           ManagerDashboardView,
                           BookingDone,
-                          FavoriteAPIView)
+                          FavoriteAPIView,
+                          FavoriteDelete)
 from django.urls import path
 
 router = DefaultRouter()
@@ -73,5 +74,7 @@ urlpatterns += [
 
    #favorite 
       path('favorites',FavoriteAPIView.as_view()),
+      path('favorites-delete',FavoriteDelete.as_view()),
+      
 
 ]
