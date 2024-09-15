@@ -2,39 +2,20 @@ from rest_framework.viewsets import GenericViewSet ,ModelViewSet
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import status
-from system.serializers import (RestaurantSerializer 
-                                ,CategorySerializer 
-                                ,DishListCreateSerializer 
-                                ,AddDishesSerializer
-                                ,DishDetailsSerializer 
-                                , TableSerializer 
-                                ,BookingSerializer
-                                ,RestaurantListBookSerializer
-                                ,ReviewSerializer
-                                ,TopRestaurantSerializer
-                                ,FavoriteSerializer,
-                                ParentCategorySerializer)
-
-from system.models import Restaurant ,Category ,Dish , Table , Booking ,Customer,Manager,Favorite,ParentCategory
+from system.serializers import *
+from system.models import *
 from authentication.permissions import IsSuperUser
 from system.permissions import IsRestaurantManager,IsCustomer
-from rest_framework.generics import(ListCreateAPIView
-                                    ,RetrieveUpdateDestroyAPIView
-                                     ,ListAPIView 
-                                    ,RetrieveUpdateAPIView
-                                    ,CreateAPIView)
+from rest_framework.generics import *
 
 from rest_framework.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from system.filters import DishFilter ,RestaurantFilter
 from rest_framework.views import APIView
-from rest_framework.permissions import AllowAny
-from authentication.models import User
+from rest_framework.permissions import AllowAny 
 from django.db.models import Count ,Q
-from django.utils.timezone import now
-from collections import defaultdict
-import calendar
+from django.utils.timezone import now 
 
 
 
@@ -370,3 +351,27 @@ class FavoriteDelete(APIView):
 class ParentCategory(ListAPIView):
       serializer_class = ParentCategorySerializer
       queryset = ParentCategory.objects.all()
+
+
+
+class CreateOffer(CreateAPIView):
+      permission_classes = [IsRestaurantManager]
+      def post(self, request, *args, **kwargs):
+          if not request.data.get("dish_id") in [dish.id for dish in request.user.manager.restaurant.dishes.all()]:
+              return Response({"The dish not offered by this restaurant"},400)
+          serializer_data = {
+              "discount":request.data.get("discount"),
+              "end_at":request.data.get("end_at")
+          }
+
+          dish = request.data.get("dish_id"),
+          serialized_offer = CreateOfferSerializer(data = serializer_data)
+          serialized_offer.is_valid(raise_exception=True)
+          serialized_offer.save(restaurant = request.user.manager.restaurant,dish = Dish.objects.get(id = dish[0]))
+
+          return Response({"offer":serialized_offer.data}, 200)
+      
+
+class DeleteOffer(DestroyAPIView):
+      permission_classes = [IsRestaurantManager]
+      queryset = Offer.objects.all()

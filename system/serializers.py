@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from system.models import Restaurant , Manager , Category , Dish , Table,Booking,Customer,Review,ParentCategory,Favorite
+from system.models import *
 from authentication.models import User 
 from django.shortcuts import get_object_or_404 
 #category serializer
@@ -193,15 +193,31 @@ class ReviewSerializer(serializers.ModelSerializer):
 
 
 
+class CreateOfferSerializer(serializers.ModelSerializer):
+      dish = DishListCreateSerializer(read_only = True)
+      class Meta:
+           model =  Offer
+           fields = "__all__"
+           extra_kwargs = {
+                "restaurant": {
+                  "read_only":True
+                }
+           }
+
+      def to_representation(self, instance):
+           data = super().to_representation(instance) 
+           data["restaurant"] = instance.restaurant.name
+           return data
 #Restaurant Serializer
 class RestaurantSerializer(serializers.ModelSerializer):
       manager = serializers.EmailField(required = True)
       tables = TableSerializer(read_only = True,many = True)
       dishes = DishListCreateSerializer(read_only = True,many = True)
       reviews = ReviewSerializer(source = 'review_set',read_only = True,many = True)
+      offers = CreateOfferSerializer(source = "offer_set",read_only = True,many = True)
       class Meta:
             model = Restaurant
-            fields = ["id","manager","tables","dishes","name","location","image","description","work_from","work_to","lat","lon","reviews","rate"]
+            fields = ["id","manager","tables","dishes","name","location","image","description","work_from","work_to","lat","lon","reviews","rate","offers"]
             extra_kwargs = {"rate":{"read_only":True}}
       def create(self, validated_data):
             email = validated_data.pop('manager',None)
@@ -255,3 +271,5 @@ class FavoriteSerializer(serializers.ModelSerializer):
            validated_data["customer"] = Customer.objects.get(id = validated_data["customer"])
            validated_data["restaurant"] = Restaurant.objects.get(id = validated_data["restaurant"])
            return super().create(validated_data)
+     
+

@@ -1,23 +1,5 @@
 from rest_framework.routers import DefaultRouter
-from system.views import (RestaurantViewSet , 
-                          CategoryViewSet ,
-                          DishViewSet,
-                          RestaurantAddDishes,
-                          ListCreateTable,
-                          RestaurantDeleteDish,
-                          RetrieveUpdateDestroyTable, 
-                          CreateBookView,
-                          MyRestaurantView,
-                          ListBookingView,
-                          UpdateBookingStatus,
-                          CreateReview,
-                          TopRatedRestaurantsView,
-                          CancelBooking,
-                          AdminDashboardView,
-                          ManagerDashboardView,
-                          BookingDone,
-                          FavoriteAPIView,
-                          FavoriteDelete,ParentCategory)
+from system.views import *
 from django.urls import path
 
 router = DefaultRouter()
@@ -78,5 +60,8 @@ urlpatterns += [
       
    # parent category 
      path('parent-categories',ParentCategory.as_view())
+
+    ,path("my-restaurant/offers",CreateOffer.as_view())
+    ,path("my-restaurant/offers/<pk>",DeleteOffer.as_view())
 
 ]

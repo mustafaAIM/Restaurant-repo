@@ -112,3 +112,9 @@ class Favorite(models.Model):
       def __str__(self) -> str:
            return f"{self.customer.user.username} love {self.restaurant.name}"
       
+
+class Offer(models.Model):
+      restaurant = models.ForeignKey(Restaurant,on_delete=models.CASCADE)
+      dish = models.ForeignKey(Dish, on_delete=models.CASCADE)
+      discount = models.DecimalField(max_digits=10,decimal_places=2)
+      end_at = models.DateField()
