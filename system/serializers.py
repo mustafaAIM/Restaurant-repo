@@ -219,13 +219,24 @@ class RestaurantSerializer(serializers.ModelSerializer):
             model = Restaurant
             fields = ["id","manager","tables","dishes","name","location","image","description","work_from","work_to","lat","lon","reviews","rate","offers"]
             extra_kwargs = {"rate":{"read_only":True}}
+            
       def create(self, validated_data):
             email = validated_data.pop('manager',None)
             user =get_object_or_404(User,email=email).id
             manager = get_object_or_404(Manager,user = user)
             validated_data['manager'] = manager     
             return super().create(validated_data=validated_data)
-
+      
+      def update(self, instance, validated_data):
+              email = validated_data.pop('manager', None)
+              if email:
+                  # Fetch the Manager instance based on the provided email
+                  user = get_object_or_404(User, email=email).id
+                  manager = get_object_or_404(Manager, user=user)
+                  instance.manager = manager
+              
+              # Update the rest of the fields
+              return super().update(instance, validated_data)
 
 class TopRestaurantSerializer(serializers.ModelSerializer):
     booking_count = serializers.IntegerField()

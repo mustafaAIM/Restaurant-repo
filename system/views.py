@@ -6,8 +6,7 @@ from system.serializers import *
 from system.models import *
 from authentication.permissions import IsSuperUser
 from system.permissions import IsRestaurantManager,IsCustomer
-from rest_framework.generics import *
-
+from rest_framework.generics import * 
 from rest_framework.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
@@ -15,13 +14,8 @@ from system.filters import DishFilter ,RestaurantFilter
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny 
 from django.db.models import Count ,Q
-from django.utils.timezone import now 
-
-
-
-# Create your views here.
-
-
+from django.utils.timezone import now    
+# Create your views here.  
 #Restaurant
 class RestaurantViewSet(ModelViewSet):
       serializer_class = RestaurantSerializer
