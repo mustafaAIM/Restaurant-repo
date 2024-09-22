@@ -366,6 +366,7 @@ class CreateOffer(CreateAPIView):
           return Response({"offer":serialized_offer.data}, 200)
       
 
-class DeleteOffer(DestroyAPIView):
+class DeleteOffer(RetrieveUpdateDestroyAPIView):
       permission_classes = [IsRestaurantManager]
       queryset = Offer.objects.all()
+      serializer_class = CreateOfferSerializer

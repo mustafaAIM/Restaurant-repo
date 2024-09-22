@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'cloudinary_storage',
     'cloudinary',
     'django_filters',
+    'django_extensions',
     #apps
     'authentication',
     'system'
