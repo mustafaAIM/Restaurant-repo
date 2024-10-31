@@ -93,7 +93,7 @@ import  dj_database_url
 DATABASES = {
    
 }
-DATABASES["default"]  = dj_database_url.parse('postgresql://postgres:yMVISUxDtGlWVwxsBhNUviHJNmwkegvU@monorail.proxy.rlwy.net:50854/railway')
+DATABASES["default"]  = dj_database_url.parse('postgresql://postgres:JdylBkDicNPrtnQzPiyvFgZJhfNFaUkS@junction.proxy.rlwy.net:45673/railway')
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
