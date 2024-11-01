@@ -20,18 +20,18 @@ class Customer(models.Model):
 
 
 
-class ParentCategory(models.Model):
-     name = models.CharField(max_length=255)
+# class ParentCategory(models.Model):
+#      name = models.CharField(max_length=255)
 
-     def __str__(self) -> str:
-          return f"{self.name}"
+#      def __str__(self) -> str:
+#           return f"{self.name}"
 
 
 
 
 class Category(models.Model):
       name =  models.CharField(max_length=255)
-      parent = models.OneToOneField(ParentCategory,on_delete=models.CASCADE,null = True,blank=True)
+    #  parent = models.OneToOneField(ParentCategory,on_delete=models.CASCADE,null = True,blank=True)
       def __str__(self) -> str:
            return self.name
 

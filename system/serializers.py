@@ -3,25 +3,19 @@ from system.models import *
 from authentication.models import User 
 from django.shortcuts import get_object_or_404 
 #category serializer
-class ParentCategorySerializer(serializers.ModelSerializer):
-     class Meta:
-          model = ParentCategory
-          fields = "__all__"
+# class ParentCategorySerializer(serializers.ModelSerializer):
+#      class Meta:
+#           model = ParentCategory
+#           fields = "__all__"
 
 
 
 class CategorySerializer(serializers.ModelSerializer):
-      parent = ParentCategorySerializer()
+    #  parent = ParentCategorySerializer()
       class Meta: 
             model = Category
             fields = "__all__"
-      
-      def to_internal_value(self, data):
-           return data  
-
-      def create(self, validated_data):
-           validated_data["parent"] = get_object_or_404(ParentCategory,id = validated_data["parent"])
-           return super().create(validated_data)
+       
 
 #Dish Serializers
 class DishListCreateSerializer(serializers.ModelSerializer):

@@ -342,9 +342,9 @@ class FavoriteDelete(APIView):
           favorite.delete()
           return Response({"deleted successfully"},204)
 
-class ParentCategory(ListAPIView):
-      serializer_class = ParentCategorySerializer
-      queryset = ParentCategory.objects.all()
+# class ParentCategory(ListAPIView):
+#       serializer_class = ParentCategorySerializer
+#       queryset = ParentCategory.objects.all()
 
 
 

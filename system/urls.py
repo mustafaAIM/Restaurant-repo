@@ -59,9 +59,8 @@ urlpatterns += [
       path('favorites-delete',FavoriteDelete.as_view()),
       
    # parent category 
-     path('parent-categories',ParentCategory.as_view())
-
-    ,path("my-restaurant/offers",CreateOffer.as_view())
+    # path('parent-categories',ParentCategory.as_view())
+     path("my-restaurant/offers",CreateOffer.as_view())
     ,path("my-restaurant/offers/<pk>",DeleteOffer.as_view())
 
 ]
