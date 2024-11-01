@@ -149,7 +149,7 @@ class ListManager(ListAPIView):
 #site
 class SiteView(RetrieveUpdateAPIView):
       serializer_class = SiteSerializer  
-      queryset = SiteSettings.objects.all().first()
+      queryset = SiteSettings.objects.all().last()
 
       def get_permissions(self):
               if self.request.method == 'GET':
