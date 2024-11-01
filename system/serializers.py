@@ -52,7 +52,7 @@ class DishListCreateSerializer(serializers.ModelSerializer):
 
       def to_representation(self, instance):
            data = super().to_representation(instance)
-           data["categories"] = [{"id":category.id,"category":category.name ,"parent":ParentCategorySerializer(ParentCategory.objects.get(id = category.parent.id)).data if category.parent != None else None} for category in instance.categories.all() ]
+           data["categories"] = [{"id":category.id,"category":category.name if category.parent != None else None} for category in instance.categories.all() ]
            return data
 
 
