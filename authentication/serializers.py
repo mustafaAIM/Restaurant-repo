@@ -14,6 +14,7 @@ from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from rest_framework.exceptions import AuthenticationFailed
 
 class BaseUserSerializer(ModelSerializer):
+    email = serializers.EmailField()
     class Meta:
         model = get_user_model()
         fields = ['id','first_name', 'last_name', 'gender', 'city', 'birth_date', 'email']
