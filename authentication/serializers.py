@@ -26,6 +26,10 @@ class BaseUserSerializer(ModelSerializer):
                 raise ValidationError('Password must contain both letters and numbers.')
         return value
 
+    def validate(self, attrs): 
+        if  User.objects.filter(email=attrs.get("email")).exists():
+              raise ValidationError({"message":"This email exists, try another"})
+        return super().validate(attrs)
 class UserRegistrationSerializer(BaseUserSerializer):
     class Meta(BaseUserSerializer.Meta):
         fields = BaseUserSerializer.Meta.fields + ['password']
