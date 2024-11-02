@@ -23,7 +23,7 @@ class BaseUserSerializer(ModelSerializer):
     def validate_password(self,value):
         if value:
             if not re.search(r'[A-Za-z]', value) or not re.search(r'\d', value):
-                raise ValidationError('Password must contain both letters and numbers.')
+                raise ValidationError({"message":'Password must contain both letters and numbers.'})
         return value
 
     def validate(self, attrs): 
