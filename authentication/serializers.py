@@ -12,12 +12,19 @@ from authentication.models import User
 
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from rest_framework.exceptions import AuthenticationFailed
-
+import re
+from rest_framework.validators import ValidationError
 class BaseUserSerializer(ModelSerializer):
     email = serializers.EmailField()
+    password = serializers.CharField(write_only=True, min_length=7, required=False)
     class Meta:
         model = get_user_model()
         fields = ['id','first_name', 'last_name', 'gender', 'city', 'birth_date', 'email']
+    def validate_password(self,value):
+        if value:
+            if not re.search(r'[A-Za-z]', value) or not re.search(r'\d', value):
+                raise ValidationError('Password must contain both letters and numbers.')
+        return value
 
 class UserRegistrationSerializer(BaseUserSerializer):
     class Meta(BaseUserSerializer.Meta):
@@ -31,6 +38,8 @@ class UserRegistrationSerializer(BaseUserSerializer):
             instance.set_password(password)
         instance.save()
         return instance
+    
+    
 
 class UserDetailSerializer(BaseUserSerializer):
     class Meta(BaseUserSerializer.Meta):
