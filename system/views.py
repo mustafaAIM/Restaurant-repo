@@ -246,8 +246,7 @@ class TopRatedRestaurantsView(ListAPIView):
 #Admin Dashboard
 class AdminDashboardView(APIView):
     permission_classes = [IsSuperUser]
-    def get(self, request):
-     
+    def get(self, request): 
         customers_count = Customer.objects.count()
         managers_count = Manager.objects.count()
         restaurant_count = Restaurant.objects.count()
